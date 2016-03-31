@@ -26,6 +26,47 @@ describe BitsClient do
     end
   end
 
+  context 'Buildpack Cache' do
+    describe '#upload_buildpack_cache' do
+      let(:file_path) { Tempfile.new('buildpack').path }
+      let(:key) { '1234/567' }
+
+      it 'makes the correct request to the bits endpoint' do
+        request = stub_request(:put, 'http://bits-service.com/buildpack_cache/1234/567').
+                  to_return(status: 201)
+
+        subject.upload_buildpack_cache(key, file_path)
+        expect(request).to have_been_requested
+      end
+    end
+
+    describe '#delete_buildpack_cache' do
+      let(:key) { '1234/567' }
+      it 'makes the correct request to the bits endpoint' do
+        request = stub_request(:delete, 'http://bits-service.com/buildpack_cache/1234/567').
+                  to_return(status: 204)
+        subject.delete_buildpack_cache(key)
+        expect(request).to have_been_requested
+      end
+    end
+
+    describe '#delete_all_buildpack_caches' do
+      it 'makes the correct request to the bits endpoint' do
+        request = stub_request(:delete, 'http://bits-service.com/buildpack_cache/').
+                  to_return(status: 204)
+        subject.delete_all_buildpack_caches
+        expect(request).to have_been_requested
+      end
+    end
+
+    describe '#download_url' do
+      it 'returns the bits-service download endpoint for the key' do
+        url = subject.download_url(:buildpack_cache, '1234/567')
+        expect(url).to eq('http://bits-service.com/buildpack_cache/1234/567')
+      end
+    end
+  end
+
   context 'Buildpacks' do
     describe '#upload_buildpack' do
       let(:file_path) { Tempfile.new('buildpack').path }

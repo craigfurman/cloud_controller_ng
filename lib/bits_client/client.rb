@@ -22,6 +22,27 @@ class BitsClient
     end
   end
 
+  def upload_buildpack_cache(key, file_path)
+    with_file_attachment!(file_path, nil) do |file_attachment|
+      body = { buildpack_cache: file_attachment }
+      put("/buildpack_cache/#{key}", body).tap do |response|
+        validate_response_code!(201, response)
+      end
+    end
+  end
+
+  def delete_buildpack_cache(key)
+    delete("/buildpack_cache/#{key}").tap do |response|
+      validate_response_code!(204, response)
+    end
+  end
+
+  def delete_all_buildpack_caches
+    delete('/buildpack_cache/').tap do |response|
+      validate_response_code!(204, response)
+    end
+  end
+
   def upload_droplet(droplet_path)
     with_file_attachment!(droplet_path, nil) do |file_attachment|
       body = { droplet: file_attachment }
@@ -126,8 +147,9 @@ class BitsClient
     do_request(request)
   end
 
-  def put(path)
-    do_request(Net::HTTP::Put.new(path))
+  def put(path, body, header={})
+    request = Net::HTTP::Put::Multipart.new(path, body, header)
+    do_request(request)
   end
 
   def multipart_post(path, body, header={})

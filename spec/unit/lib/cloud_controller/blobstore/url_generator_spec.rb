@@ -71,6 +71,28 @@ module CloudController
             url_generator.buildpack_cache_download_url(app)
             expect(internal_url_generator).to have_received(:buildpack_cache_download_url).with(app)
           end
+
+          context 'when bits-service is being used' do
+            let(:bits_client) { double(:bits_client) }
+            let(:cache_key) { SecureRandom.uuid }
+
+            before do
+              allow(app).to receive(:buildpack_cache_key).and_return(cache_key)
+            end
+
+            it 'calls bits_client for the download url' do
+              expect(bits_client).to receive(:download_url).with(:buildpack_cache, cache_key)
+              url_generator.buildpack_cache_download_url(app)
+            end
+
+            it 'returns the download_url from the bits_client' do
+              allow(bits_client).to receive(:download_url).
+                and_return('https://test.com/download-1')
+
+              expect(url_generator.buildpack_cache_download_url(app)).
+                to eq('https://test.com/download-1')
+            end
+          end
         end
 
         describe 'admin buildpacks' do

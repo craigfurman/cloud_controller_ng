@@ -38,6 +38,10 @@ module CloudController
       end
 
       def buildpack_cache_download_url(app)
+        if use_bits_service?
+          return @bits_client.download_url(:buildpack_cache, app.buildpack_cache_key)
+        end
+
         if @buildpack_cache_blobstore.local?
           @local_url_generator.buildpack_cache_download_url(app)
         else

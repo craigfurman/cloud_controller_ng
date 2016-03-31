@@ -83,6 +83,28 @@ module VCAP::CloudController
       it 'knows its job name' do
         expect(job.job_name_in_configuration).to equal(:buildpack_cache_cleanup)
       end
+
+      context 'when bits service is enabled' do
+        let(:blobstore_config) do
+          {
+            bits_service: {
+              enabled: true,
+              endpoint: 'https://bits-service.example.com'
+            }
+          }
+        end
+
+        before do
+          allow_any_instance_of(CloudController::DependencyLocator).to receive(:bits_client).and_return(bits_client)
+        end
+
+        let(:bits_client) { double(:bits_client) }
+
+        it 'uses the bits client to delete all buildpack caches' do
+          expect(bits_client).to receive(:delete_all_buildpack_caches)
+          job.perform
+        end
+      end
     end
   end
 end

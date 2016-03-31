@@ -682,7 +682,7 @@ module VCAP::CloudController
 
       context 'with a valid buildpack cache' do
         context 'when nginx is enabled' do
-          it 'redirects nginx to serve staged droplet' do
+          it 'redirects nginx to serve staged buildpack cache' do
             buildpack_cache_blobstore.cp_to_blobstore(
               buildpack_cache.path,
               "#{app_obj.guid}/#{app_obj.stack.name}"
@@ -691,6 +691,23 @@ module VCAP::CloudController
             make_request
             expect(last_response.status).to eq(200)
             expect(last_response.headers['X-Accel-Redirect']).to match("/cc-droplets/.*/#{app_obj.guid}/#{app_obj.stack.name}")
+          end
+
+          context 'when using bits service' do
+            let(:staging_config) do
+              original_staging_config.merge({
+                bits_service: {
+                  enabled: true,
+                  endpoint: 'http://bits-service.com'
+                }
+              })
+            end
+
+            it 'redirects nginx to serve the bits service buildpack cache' do
+              make_request
+              expect(last_response.status).to eq(200)
+              expect(last_response.headers['X-Accel-Redirect']).to match("/bits_redirect/http://bits-service.com/buildpack_cache/#{app_obj.guid}/#{app_obj.stack.name}")
+            end
           end
         end
 
@@ -708,6 +725,26 @@ module VCAP::CloudController
             make_request
             expect(last_response.status).to eq(200)
             expect(last_response.body).to eq('droplet contents')
+          end
+
+          context 'when using bits service' do
+            let(:staging_config) do
+              original_staging_config.merge({
+                nginx: {
+                  use_nginx: false
+                },
+                bits_service: {
+                  enabled: true,
+                  endpoint: 'http://bits-service.com'
+                }
+              })
+            end
+
+            it 'redirects to bits service' do
+              make_request
+              expect(last_response.status).to eq(302)
+              expect(last_response.headers['Location']).to match("http://bits-service.com/buildpack_cache/#{app_obj.guid}/#{app_obj.stack.name}")
+            end
           end
         end
       end
