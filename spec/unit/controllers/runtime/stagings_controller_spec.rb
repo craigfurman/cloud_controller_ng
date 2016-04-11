@@ -706,7 +706,7 @@ module VCAP::CloudController
             it 'redirects nginx to serve the bits service buildpack cache' do
               make_request
               expect(last_response.status).to eq(200)
-              expect(last_response.headers['X-Accel-Redirect']).to match("/bits_redirect/http://bits-service.com/buildpack_cache/#{app_obj.guid}/#{app_obj.stack.name}")
+              expect(last_response.headers['X-Accel-Redirect']).to match("/bits_redirect/http://bits-service.com/buildpack_cache/entries/#{app_obj.guid}/#{app_obj.stack.name}")
             end
           end
         end
@@ -743,7 +743,7 @@ module VCAP::CloudController
             it 'redirects to bits service' do
               make_request
               expect(last_response.status).to eq(302)
-              expect(last_response.headers['Location']).to match("http://bits-service.com/buildpack_cache/#{app_obj.guid}/#{app_obj.stack.name}")
+              expect(last_response.headers['Location']).to match("http://bits-service.com/buildpack_cache/entries/#{app_obj.guid}/#{app_obj.stack.name}")
             end
           end
         end

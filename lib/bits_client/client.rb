@@ -25,20 +25,20 @@ class BitsClient
   def upload_buildpack_cache(key, file_path)
     with_file_attachment!(file_path, nil) do |file_attachment|
       body = { buildpack_cache: file_attachment }
-      put("/buildpack_cache/#{key}", body).tap do |response|
+      put("/buildpack_cache/entries/#{key}", body).tap do |response|
         validate_response_code!(201, response)
       end
     end
   end
 
   def delete_buildpack_cache(key)
-    delete("/buildpack_cache/#{key}").tap do |response|
+    delete("/buildpack_cache/entries/#{key}").tap do |response|
       validate_response_code!(204, response)
     end
   end
 
   def delete_all_buildpack_caches
-    delete('/buildpack_cache/').tap do |response|
+    delete('/buildpack_cache/entries').tap do |response|
       validate_response_code!(204, response)
     end
   end
@@ -86,6 +86,8 @@ class BitsClient
   end
 
   def download_url(resource_type, guid)
+    resource_type = 'buildpack_cache/entries' if resource_type.to_sym == :buildpack_cache
+
     File.join(endpoint.to_s, resource_type.to_s, guid.to_s)
   end
 
