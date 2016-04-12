@@ -3,7 +3,8 @@ module CloudController
     class BitsServiceClient
       def initialize(bits_client:, resource_type:)
         raise StandardError 'Must specify resource type' unless resource_type.present?
-        @resource_type = resource_type.to_s.singularize
+        @resource_type = resource_type
+        @resource_type_singular = @resource_type.to_s.singularize
         @bits_client = bits_client
       end
 
@@ -36,11 +37,11 @@ module CloudController
       end
 
       def blob(key)
-        OpenStruct.new({ guid: key })
+        OpenStruct.new({ guid: key, public_download_url: @bits_client.download_url(@resource_type, key) })
       end
 
       def delete_blob(blob)
-        @bits_client.public_send("delete_#{@resource_type}", blob.guid)
+        @bits_client.public_send("delete_#{@resource_type_singular}", blob.guid)
       end
 
       def delete_all(_=nil)
