@@ -12,14 +12,19 @@ module VCAP::CloudController
 
         def perform
           droplet = DropletModel.find(guid: @droplet_guid)
+          digest = nil
 
           if droplet
-            digest = Digester.new.digest_path(@local_path)
+            if use_bits_service?
+              digest = upload_to_bits_service(@local_path)
+            else
+              digest = Digester.new.digest_path(@local_path)
 
-            blobstore.cp_to_blobstore(
-              @local_path,
-              File.join(@droplet_guid, digest)
-            )
+              blobstore.cp_to_blobstore(
+                @local_path,
+                File.join(@droplet_guid, digest)
+              )
+            end
 
             droplet.update(droplet_hash: digest)
           end
@@ -43,6 +48,23 @@ module VCAP::CloudController
 
         def blobstore
           @blobstore ||= CloudController::DependencyLocator.instance.droplet_blobstore
+        end
+
+        private
+
+        def upload_to_bits_service(file_path)
+          response = bits_client.upload_droplet(file_path)
+          JSON.parse(response.body)['guid']
+        rescue BitsClient::Errors::Error => e
+          raise VCAP::Errors::ApiError.new_from_details('BitsServiceError', e.message)
+        end
+
+        def use_bits_service?
+          !!bits_client
+        end
+
+        def bits_client
+          CloudController::DependencyLocator.instance.bits_client
         end
       end
     end

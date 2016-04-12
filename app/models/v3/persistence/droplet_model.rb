@@ -61,6 +61,7 @@ module VCAP::CloudController
     end
 
     def blobstore_key
+      return droplet_hash if use_bits_service?
       File.join(guid, droplet_hash) if droplet_hash
     end
 
@@ -83,6 +84,10 @@ module VCAP::CloudController
     end
 
     private
+
+    def use_bits_service?
+      CloudController::DependencyLocator.instance.use_bits_service
+    end
 
     def entering_staged?
       column_changed?(:state) && self.state == STAGED_STATE

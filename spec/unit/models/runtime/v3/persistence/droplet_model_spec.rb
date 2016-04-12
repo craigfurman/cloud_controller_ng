@@ -65,6 +65,18 @@ module VCAP::CloudController
           expect(droplet.blobstore_key).to be_nil
         end
       end
+
+      context 'when bits-service is enabled' do
+        let(:droplet_hash) { 'foobar' }
+
+        before(:each) do
+          allow_any_instance_of(CloudController::DependencyLocator).to receive(:use_bits_service).and_return(true)
+        end
+
+        it 'uses only the digest as key' do
+          expect(droplet.blobstore_key).to eq(droplet_hash)
+        end
+      end
     end
 
     describe '#staged?' do

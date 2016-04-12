@@ -46,6 +46,41 @@ module VCAP::CloudController
           expect(job.job_name_in_configuration).to equal(:droplet_upload)
         end
 
+        context 'when using bits-service' do
+          let(:bits_client) { double(:bits_client) }
+          let(:received_guid) { SecureRandom.uuid }
+
+          before do
+            allow(CloudController::DependencyLocator.instance).to receive(:bits_client).and_return(bits_client)
+            allow(bits_client).to receive(:upload_droplet).and_return(double(:response, body: { guid: received_guid }.to_json))
+          end
+
+          it 'uploads the droplet to the blobstore' do
+            expect(bits_client).to receive(:upload_droplet).with(local_file.path).and_return(double(:response, body: '{"guid":"droplet-1"}'))
+
+            job.perform
+          end
+
+          it 'stores the received guid in the droplet_hash field' do
+            job.perform
+            droplet.refresh
+            expect(droplet.droplet_hash).to eq(received_guid)
+          end
+
+          context 'when bits_client fails' do
+            let(:worker) { Delayed::Worker.new }
+
+            before do
+              allow(bits_client).to receive(:upload_droplet).and_raise(RuntimeError, 'Something Terrible Happened')
+              worker.work_off 1
+            end
+
+            it 'does not record the droplet hash' do
+              expect(droplet.refresh.droplet_hash).to be_nil
+            end
+          end
+        end
+
         context 'when the droplet record no longer exists' do
           subject(:job) { DropletUpload.new(local_file.path, 'bad-guid') }
 
