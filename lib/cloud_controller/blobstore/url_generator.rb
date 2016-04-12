@@ -82,6 +82,11 @@ module CloudController
       end
 
       def v3_droplet_download_url(droplet)
+        if use_bits_service?
+          return nil unless droplet.droplet_hash
+          return @bits_client.download_url(:droplets, droplet.droplet_hash)
+        end
+
         if @droplet_blobstore.local?
           @local_url_generator.v3_droplet_download_url(droplet)
         else

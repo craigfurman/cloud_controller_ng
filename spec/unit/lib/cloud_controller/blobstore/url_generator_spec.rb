@@ -208,6 +208,24 @@ module CloudController
               url_generator.v3_droplet_download_url(droplet)
               expect(internal_url_generator).to have_received(:v3_droplet_download_url).with(droplet)
             end
+
+            context 'when bits-service is being used' do
+              let(:bits_client) { double(:bits_client) }
+              let(:droplet) { double(:droplet, droplet_hash: 'abc') }
+
+              it 'calls bits_client for the download url' do
+                expect(bits_client).to receive(:download_url).with(:droplets, 'abc')
+                url_generator.v3_droplet_download_url(droplet)
+              end
+
+              it 'returns the download_url from the bits_client' do
+                allow(bits_client).to receive(:download_url).
+                  and_return('https://test.com/download-1')
+
+                expect(url_generator.v3_droplet_download_url(droplet)).
+                  to eq('https://test.com/download-1')
+              end
+            end
           end
 
           describe 'download app buildpack cache' do
