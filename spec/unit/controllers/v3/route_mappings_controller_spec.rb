@@ -12,6 +12,7 @@ describe RouteMappingsController, type: :controller do
   describe '#create' do
     let(:req_body) do
       {
+        app_port: 8888,
         relationships: {
           app:     { guid: app.guid },
           route:   { guid: route.guid },
@@ -40,6 +41,26 @@ describe RouteMappingsController, type: :controller do
         post :create, body: req_body
 
         expect(response.body).to include 'UnprocessableEntity'
+      end
+    end
+
+    context 'when app_port is not provided in the request' do
+      it 'sets the app_port to the default 8080' do
+        req_body.delete(:app_port)
+        post :create, body: req_body
+
+        expect(response.status).to eq(201)
+        expect(VCAP::CloudController::RouteMappingModel.last.port).to eq(8080)
+      end
+    end
+
+    context 'when app_port is provided in the request' do
+      it 'sets the app_port' do
+        post :create, body: req_body
+
+        expect(response.status).to eq(201)
+        expect(parsed_body['app_port']).to eq(VCAP::CloudController::RouteMappingModel.last.port)
+        expect(VCAP::CloudController::RouteMappingModel.last.port).to eq(8888)
       end
     end
 
@@ -74,7 +95,7 @@ describe RouteMappingsController, type: :controller do
       end
 
       it 'creates the specified process type' do
-        expect_any_instance_of(VCAP::CloudController::RouteMappingCreate).to receive(:add).with(app, route, app_process, 'worker').and_call_original
+        expect_any_instance_of(VCAP::CloudController::RouteMappingCreate).to receive(:add).with(app, route, app_process, 'worker', '8888').and_call_original
         post :create, body: req_body
 
         expect(VCAP::CloudController::RouteMappingModel.first.process_type).to eq 'worker'
