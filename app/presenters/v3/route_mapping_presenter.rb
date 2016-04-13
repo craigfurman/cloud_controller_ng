@@ -27,6 +27,7 @@ module VCAP::CloudController
     def route_mapping_hash(route_mapping)
       {
         guid:       route_mapping.guid,
+        app_port:   route_mapping.port,
         created_at: route_mapping.created_at,
         updated_at: route_mapping.updated_at,
         links:      build_links(route_mapping)

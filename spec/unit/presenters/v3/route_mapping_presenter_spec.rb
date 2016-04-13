@@ -9,6 +9,7 @@ module VCAP::CloudController
     let(:route_mapping) do
       RouteMappingModel.make(
         app:          app,
+        port:         1234,
         route:        route,
         process_type: process.type,
         created_at:   Time.at(1),
@@ -25,6 +26,7 @@ module VCAP::CloudController
         result      = MultiJson.load(json_result)
 
         expect(result['guid']).to eq(route_mapping.guid)
+        expect(result['app_port']).to eq(route_mapping.port)
         expect(result['created_at']).to eq('1970-01-01T00:00:01Z')
         expect(result['updated_at']).to eq('1970-01-01T00:00:02Z')
         expect(result['links']).to include('self')
