@@ -117,13 +117,6 @@ module VCAP::CloudController
       check_app_exists(app, guid)
       blob_name = 'buildpack cache'
 
-      if @use_bits_service
-        url = @bits_client.download_url(:buildpack_cache, app.buildpack_cache_key)
-        @missing_blob_handler.handle_missing_blob!(app.guid, blob_name) unless url
-        return [200, { 'X-Accel-Redirect' => "/bits_redirect/#{url}" }, nil] if @config[:nginx][:use_nginx]
-        redirect url
-      end
-
       blob = buildpack_cache_blobstore.blob(app.buildpack_cache_key)
       @missing_blob_handler.handle_missing_blob!(app.guid, blob_name) unless blob
       @blob_sender.send_blob(blob, self)

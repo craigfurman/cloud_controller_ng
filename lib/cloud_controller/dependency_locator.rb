@@ -91,7 +91,9 @@ module CloudController
       Blobstore::ClientProvider.provide(
         options: options,
         directory_key: options.fetch(:droplet_directory_key),
-        root_dir: 'buildpack_cache'
+        root_dir: 'buildpack_cache',
+        resource_type: :buildpack_cache,
+        bits_client: bits_client
       )
     end
 
@@ -237,7 +239,7 @@ module CloudController
     end
 
     def blob_sender
-      return CloudController::BlobSender::BitsServiceBlobSender.new if use_bits_service
+      return CloudController::BlobSender::BitsServiceBlobSender.new(use_nginx: @config[:nginx][:use_nginx]) if use_bits_service
 
       if @config[:nginx][:use_nginx]
         CloudController::BlobSender::NginxLocalBlobSender.new

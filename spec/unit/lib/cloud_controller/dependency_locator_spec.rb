@@ -41,8 +41,34 @@ describe CloudController::DependencyLocator do
     end
 
     it 'creates blob store' do
-      expect(CloudController::Blobstore::ClientProvider).to receive(:provide).with(options: config[:droplets], directory_key: 'key', root_dir: 'buildpack_cache')
+      expect(CloudController::Blobstore::ClientProvider).to receive(:provide).with(
+        options: config[:droplets],
+        directory_key: 'key',
+        root_dir: 'buildpack_cache',
+        resource_type: :buildpack_cache,
+        bits_client: nil)
       locator.buildpack_cache_blobstore
+    end
+
+    context('when bits service is enabled') do
+      let(:config) do
+        {
+          droplets: {
+            fog_connection: 'fog_connection',
+            droplet_directory_key: 'key',
+          },
+          bits_service: {
+            enabled: true,
+            endpoint: 'https://bits-service.com'
+          }
+        }
+      end
+
+      it 'creates the client with the right arguments' do
+        expect(CloudController::Blobstore::ClientProvider).to receive(:provide).
+          with(options: config[:droplets], directory_key: 'key', root_dir: 'buildpack_cache', resource_type: :buildpack_cache, bits_client: kind_of(BitsClient))
+        locator.buildpack_cache_blobstore
+      end
     end
   end
 
