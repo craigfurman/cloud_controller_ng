@@ -15,8 +15,9 @@ describe 'Route Mappings' do
   end
 
   describe 'POST /v3/route_mappings' do
-    it 'creates a route mapping for a specific process on an app' do
+    it 'creates a route mapping for a specific process on an app on a specific port' do
       body = {
+        app_port: 8888,
         relationships: {
           app:     { guid: app_model.guid },
           route:   { guid: route.guid },
@@ -30,6 +31,7 @@ describe 'Route Mappings' do
 
       expected_response = {
         'guid'       => guid,
+        'app_port'       => 8888,
         'created_at' => iso8601,
         'updated_at' => nil,
 
