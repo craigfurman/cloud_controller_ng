@@ -5,6 +5,7 @@ class BitsClient
 
   def initialize(endpoint:)
     @endpoint = URI.parse(endpoint)
+    @logger = Steno.logger('cc.bits_client')
   end
 
   def upload_buildpack(buildpack_path, filename)
@@ -118,8 +119,16 @@ class BitsClient
 
   def validate_response_code!(expected, response)
     return if expected.to_i == response.code.to_i
-    error = JSON.parse(response.body)
-    fail Errors::UnexpectedResponseCode.new(error['description'])
+
+    error = {
+      response_code: response.code,
+      response_body: response.body,
+      response: response
+    }.to_json
+
+    @logger.error("UnexpectedResponseCode: expected #{expected} got #{error}")
+
+    fail Errors::UnexpectedResponseCode.new(error)
   end
 
   def with_file_attachment!(file_path, filename, &block)

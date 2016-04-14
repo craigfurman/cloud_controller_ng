@@ -95,7 +95,7 @@ describe BitsClient do
 
         expect {
           subject.upload_buildpack(file_path, file_name)
-        }.to raise_error(BitsClient::Errors::Error, 'bits-failure')
+        }.to raise_error(BitsClient::Errors::Error, /bits-failure/)
       end
 
       context 'when invalid buildpack is given' do
@@ -137,7 +137,7 @@ describe BitsClient do
 
         expect {
           subject.delete_buildpack(guid)
-        }.to raise_error(BitsClient::Errors::Error, 'bits-failure')
+        }.to raise_error(BitsClient::Errors::Error, /bits-failure/)
       end
     end
   end
@@ -169,7 +169,7 @@ describe BitsClient do
 
         expect {
           subject.upload_droplet(file_path)
-        }.to raise_error(BitsClient::Errors::Error, 'bits-failure')
+        }.to raise_error(BitsClient::Errors::Error, /bits-failure/)
       end
 
       context 'when invalid droplet is given' do
@@ -204,7 +204,7 @@ describe BitsClient do
 
         expect {
           subject.delete_droplet(guid)
-        }.to raise_error(BitsClient::Errors::Error, 'bits-failure')
+        }.to raise_error(BitsClient::Errors::Error, /bits-failure/)
       end
     end
 
@@ -243,7 +243,7 @@ describe BitsClient do
 
         expect {
           subject.upload_package(file_path)
-        }.to raise_error(BitsClient::Errors::Error, 'bits-failure')
+        }.to raise_error(BitsClient::Errors::Error, /bits-failure/)
       end
 
       context 'when invalid package is given' do
@@ -278,7 +278,7 @@ describe BitsClient do
 
         expect {
           subject.delete_package(guid)
-        }.to raise_error(BitsClient::Errors::Error, 'bits-failure')
+        }.to raise_error(BitsClient::Errors::Error, /bits-failure/)
       end
     end
 
@@ -305,7 +305,7 @@ describe BitsClient do
 
         expect {
           subject.download_package(guid)
-        }.to raise_error(BitsClient::Errors::Error, 'bits-failure')
+        }.to raise_error(BitsClient::Errors::Error, /bits-failure/)
       end
     end
 
@@ -332,7 +332,7 @@ describe BitsClient do
 
         expect {
           subject.duplicate_package(guid)
-        }.to raise_error(BitsClient::Errors::Error, 'bits-failure')
+        }.to raise_error(BitsClient::Errors::Error, /bits-failure/)
       end
     end
 
@@ -374,7 +374,7 @@ describe BitsClient do
 
         expect {
           subject.matches(resources.to_json)
-        }.to raise_error(BitsClient::Errors::Error, 'bits-failure')
+        }.to raise_error(BitsClient::Errors::Error, /bits-failure/)
       end
     end
 
@@ -405,7 +405,7 @@ describe BitsClient do
 
         expect {
           subject.upload_entries(zip)
-        }.to raise_error(BitsClient::Errors::Error, 'bits-failure')
+        }.to raise_error(BitsClient::Errors::Error, /bits-failure/)
       end
     end
 
@@ -440,7 +440,7 @@ describe BitsClient do
 
         expect {
           subject.bundles(order.to_json)
-        }.to raise_error(BitsClient::Errors::Error, 'bits-failure')
+        }.to raise_error(BitsClient::Errors::Error, /bits-failure/)
       end
     end
   end
