@@ -37,6 +37,23 @@ module CloudController
           client.delete_blob(double(:blob, guid: key))
         end
       end
+
+      describe '#delete_all_in_path' do
+        context 'the resource_type is :buildpack_cache' do
+          let(:resource_type) { :buildpack_cache }
+
+          it 'delegates to the client' do
+            expect(bits_client).to receive('delete_buildpack_cache').with(key)
+            client.delete_all_in_path(key)
+          end
+        end
+
+        context 'the resource_type is any of [:buildpacks, :droplets, :packages]' do
+          it 'raises an error' do
+            expect { client.delete_all_in_path('some-key') }.to raise_error(NotImplementedError)
+          end
+        end
+      end
     end
   end
 end

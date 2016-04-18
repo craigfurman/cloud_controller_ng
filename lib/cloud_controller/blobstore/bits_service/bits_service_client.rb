@@ -49,7 +49,11 @@ module CloudController
       end
 
       def delete_all_in_path(path)
-        raise NotImplementedError
+        if :buildpack_cache != @resource_type
+          raise NotImplementedError
+        else
+          @bits_client.delete_buildpack_cache(path)
+        end
       end
     end
   end
