@@ -38,9 +38,7 @@ module CloudController
       end
 
       def buildpack_cache_download_url(app)
-        if use_bits_service?
-          return @bits_client.download_url(:buildpack_cache, app.buildpack_cache_key)
-        end
+        return @bits_client.download_url(:buildpack_cache, app.buildpack_cache_key) if use_bits_service?
 
         if @buildpack_cache_blobstore.local?
           @local_url_generator.buildpack_cache_download_url(app)
@@ -82,10 +80,7 @@ module CloudController
       end
 
       def v3_droplet_download_url(droplet)
-        if use_bits_service?
-          return nil unless droplet.droplet_hash
-          return @bits_client.download_url(:droplets, droplet.droplet_hash)
-        end
+        return @bits_client.download_url(:droplets, droplet.droplet_hash) if use_bits_service?
 
         if @droplet_blobstore.local?
           @local_url_generator.v3_droplet_download_url(droplet)
