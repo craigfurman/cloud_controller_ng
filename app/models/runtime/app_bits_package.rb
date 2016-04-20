@@ -45,11 +45,18 @@ class AppBitsPackage
       raise InvalidZip.new('The zip provided was not valid') unless valid_zip?(package_path)
       raise ZipSizeExceeded if @max_package_size && package_size(package_path) > @max_package_size
 
-      package_blobstore.cp_to_blobstore(package_path, package_guid)
+      bits_client = CloudController::DependencyLocator.instance.bits_client
+
+      if bits_client
+        package_hash = bits_client.upload_package(package_path)
+      else
+        package_blobstore.cp_to_blobstore(package_path, package_guid)
+        package_hash = Digester.new.digest_path(package_path)
+      end
 
       package.db.transaction do
         package.lock!
-        package.package_hash = Digester.new.digest_path(package_path)
+        package.package_hash = package_hash
         package.state = VCAP::CloudController::PackageModel::READY_STATE
         package.save
       end

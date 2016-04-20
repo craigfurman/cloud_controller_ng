@@ -117,6 +117,38 @@ describe AppBitsPackage do
         }.to raise_error(AppBitsPackage::ZipSizeExceeded)
       end
     end
+
+    context 'when bits_service is enabled' do
+      let(:bits_client) { double(BitsClient, upload_package: package_guid) }
+
+      before do
+        allow(CloudController::DependencyLocator.instance).to receive(:bits_client).and_return(bits_client)
+      end
+
+      it 'uploads package to bits_service' do
+        expect(bits_client).to receive(:upload_package).with(compressed_path).once
+        create
+      end
+
+      it 'does not copy to blobstore' do
+        expect(package_blobstore).to_not receive(:cp_to_blobstore)
+        create
+      end
+
+      it 'stores the bits_service package guid in the package model' do
+        expect { create }.to change { package.refresh.package_hash }.to(package_guid)
+      end
+
+      it 'sets the state of the package' do
+        expect { create }.to change { package.refresh.state }.to('READY')
+      end
+
+      it 'expires any old packages' do
+        allow(VCAP::CloudController::Config).to receive(:config) { {} }
+        expect_any_instance_of(VCAP::CloudController::BitsExpiration).to receive(:expire_packages!)
+        create
+      end
+    end
   end
 
   describe '#create' do
