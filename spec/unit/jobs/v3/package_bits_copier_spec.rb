@@ -54,45 +54,45 @@ module VCAP::CloudController
         end
 
         context 'when using bits-service' do
-            let(:bits_client) { double(BitsClient) }
-            let(:dest_package_guid) { 'some-package-guid' }
+          let(:bits_client) { double(BitsClient) }
+          let(:dest_package_guid) { 'some-package-guid' }
+
+          before do
+            allow(CloudController::DependencyLocator.instance).to receive(:bits_client).and_return(bits_client)
+            allow(bits_client).to receive(:duplicate_package).and_return(dest_package_guid)
+          end
+
+          it 'does not call blobstore.cp' do
+            expect(package_blobstore).not_to receive(:cp_file_between_keys)
+            job.perform
+          end
+
+          it 'calls duplicate_package on bits_client' do
+            expect(bits_client).to receive(:duplicate_package).with(source_package.package_hash)
+            job.perform
+          end
+
+          it 'sets the package_hash for the destination package' do
+            expect { job.perform }.to change { destination_package.refresh.package_hash }.to(dest_package_guid)
+          end
+
+          it 'sets the state for the destination package to READY' do
+            expect { job.perform }.to change { destination_package.refresh.state }.to(VCAP::CloudController::PackageModel::READY_STATE)
+          end
+
+          context 'and duplicate_package fails' do
+            let(:expected_error) { 'some-error' }
 
             before do
-              allow(CloudController::DependencyLocator.instance).to receive(:bits_client).and_return(bits_client)
-              allow(bits_client).to receive(:duplicate_package).and_return(dest_package_guid)
+              allow(bits_client).to receive(:duplicate_package).and_raise(expected_error)
             end
 
-            it 'does not call blobstore.cp' do
-              expect(package_blobstore).not_to receive(:cp_file_between_keys)
-              job.perform
+            it 'sets the state for the destination package to FAILED' do
+              expect { job.perform }.to raise_error(expected_error)
+              expect(destination_package.refresh.state).to eq(VCAP::CloudController::PackageModel::FAILED_STATE)
+              expect(destination_package.error).to eq("failed to copy - #{expected_error}")
             end
-
-            it 'calls duplicate_package on bits_client' do
-              expect(bits_client).to receive(:duplicate_package).with(source_package.package_hash)
-              job.perform
-            end
-
-            it 'sets the package_hash for the destination package' do
-              expect { job.perform }.to change { destination_package.refresh.package_hash }.to(dest_package_guid)
-            end
-
-            it 'sets the state for the destination package to READY' do
-              expect { job.perform }.to change { destination_package.refresh.state }.to(VCAP::CloudController::PackageModel::READY_STATE)
-            end
-
-            context 'and duplicate_package fails' do
-              let(:expected_error) { 'some-error' }
-
-              before do
-                allow(bits_client).to receive(:duplicate_package).and_raise(expected_error)
-              end
-
-              it 'sets the state for the destination package to FAILED' do
-                expect { job.perform }.to raise_error(expected_error)
-                expect(destination_package.refresh.state).to eq(VCAP::CloudController::PackageModel::FAILED_STATE)
-                expect(destination_package.error).to eq("failed to copy - #{expected_error}")
-              end
-            end
+          end
         end
 
         context 'when the copy fails' do

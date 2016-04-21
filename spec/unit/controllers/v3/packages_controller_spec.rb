@@ -214,6 +214,24 @@ describe PackagesController, type: :controller do
       expect(response.headers['Location']).to eq('http://package.example.com')
     end
 
+    context 'when using bits-service' do
+      let(:bits_client) { double(BitsClient) }
+
+      before do
+        allow_any_instance_of(CloudController::Blobstore::Client).to receive(:blob).and_call_original
+        allow(CloudController::DependencyLocator.instance).to receive(:use_bits_client).and_return(true)
+        allow(CloudController::DependencyLocator.instance).to receive(:bits_client).and_return(bits_client)
+        allow(bits_client).to receive(:download_url).and_return('http://bits-service.com')
+      end
+
+      it 'redirects to the bits-service' do
+        get :download, guid: package.guid
+
+        expect(response.status).to eq(302)
+        expect(response.headers['Location']).to eq('http://bits-service.com')
+      end
+    end
+
     context 'when the package is not of type bits' do
       before do
         package.type = 'docker'
