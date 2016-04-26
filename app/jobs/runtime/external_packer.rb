@@ -58,8 +58,7 @@ module VCAP::CloudController
         private
 
         def upload_package(bits_client, file_path)
-          response = bits_client.upload_package(file_path)
-          JSON.parse(response.body)['guid']
+          bits_client.upload_package(file_path)
         rescue BitsClient::Errors::Error => e
           raise VCAP::Errors::ApiError.new_from_details('BitsServiceError', e.message)
         end

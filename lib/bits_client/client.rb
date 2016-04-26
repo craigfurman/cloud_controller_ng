@@ -11,9 +11,7 @@ class BitsClient
   def upload_buildpack(buildpack_path, filename)
     with_file_attachment!(buildpack_path, filename) do |file_attachment|
       body = { buildpack: file_attachment }
-      multipart_post('/buildpacks', body).tap do |response|
-        validate_response_code!(201, response)
-      end
+      multipart_post('/buildpacks', body)
     end
   end
 
@@ -47,9 +45,7 @@ class BitsClient
   def upload_droplet(droplet_path)
     with_file_attachment!(droplet_path, nil) do |file_attachment|
       body = { droplet: file_attachment }
-      multipart_post('/droplets', body).tap do |response|
-        validate_response_code!(201, response)
-      end
+      multipart_post('/droplets', body)
     end
   end
 
@@ -60,12 +56,11 @@ class BitsClient
   end
 
   def upload_package(package_path)
-    with_file_attachment!(package_path, nil) do |file_attachment|
+    response = with_file_attachment!(package_path, nil) do |file_attachment|
       body = { package: file_attachment }
-      multipart_post('/packages', body).tap do |response|
-        validate_response_code!(201, response)
-      end
+      multipart_post('/packages', body)
     end
+    JSON.parse(response.body)['guid']
   end
 
   def delete_package(guid)
@@ -81,9 +76,9 @@ class BitsClient
   end
 
   def duplicate_package(guid)
-    post('/packages', JSON.generate(source_guid: guid)).tap do |response|
-      validate_response_code!(201, response)
-    end
+    response = post('/packages', JSON.generate(source_guid: guid))
+    validate_response_code!(201, response)
+    JSON.parse(response.body)['guid']
   end
 
   def download_url(resource_type, guid)
@@ -101,9 +96,7 @@ class BitsClient
   def upload_entries(entries_path)
     with_file_attachment!(entries_path, 'entries.zip') do |file_attachment|
       body = { application: file_attachment }
-      multipart_post('/app_stash/entries', body).tap do |response|
-        validate_response_code!(201, response)
-      end
+      multipart_post('/app_stash/entries', body)
     end
   end
 
@@ -165,7 +158,9 @@ class BitsClient
 
   def multipart_post(path, body, header={})
     request = Net::HTTP::Post::Multipart.new(path, body, header)
-    do_request(request)
+    do_request(request).tap do |response|
+      validate_response_code!(201, response)
+    end
   end
 
   def delete(path)

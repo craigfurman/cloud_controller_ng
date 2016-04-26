@@ -219,11 +219,12 @@ describe BitsClient do
   context 'Packages' do
     describe '#upload_package' do
       let(:file_path) { Tempfile.new('package').path }
+      let(:guid) { 'some-guid' }
 
       it 'makes the correct request to the bits endpoint' do
         request = stub_request(:post, 'http://bits-service.com/packages').
                   with(body: /.*package".*/).
-                  to_return(status: 201)
+                  to_return(status: 201, body: "{\"guid\":\"#{guid}\"}")
 
         subject.upload_package(file_path)
         expect(request).to have_been_requested
@@ -231,10 +232,10 @@ describe BitsClient do
 
       it 'returns the request response' do
         stub_request(:post, 'http://bits-service.com/packages').
-          to_return(status: 201)
+          to_return(status: 201, body: "{\"guid\":\"#{guid}\"}")
 
-        response = subject.upload_package(file_path)
-        expect(response).to be_a(Net::HTTPCreated)
+        response_guid = subject.upload_package(file_path)
+        expect(response_guid).to eq(guid)
       end
 
       it 'raises an error when the response is not 201' do
@@ -310,20 +311,21 @@ describe BitsClient do
     end
 
     describe '#duplicate_package' do
+      let(:bsguid) { 'some-guid' }
       it 'makes the correct request to the bits endpoint' do
         request = stub_request(:post, 'http://bits-service.com/packages').
                   with(body: JSON.generate('source_guid' => guid)).
-                  to_return(status: 201)
+                  to_return(status: 201, body: "{\"guid\":\"#{bsguid}\"}")
 
         subject.duplicate_package(guid)
         expect(request).to have_been_requested
       end
 
       it 'returns the request response' do
-        stub_request(:post, 'http://bits-service.com/packages').to_return(status: 201)
+        stub_request(:post, 'http://bits-service.com/packages').to_return(status: 201, body: "{\"guid\":\"#{bsguid}\"}")
 
-        response = subject.duplicate_package(guid)
-        expect(response).to be_a(Net::HTTPCreated)
+        response_guid = subject.duplicate_package(guid)
+        expect(response_guid).to eq(bsguid)
       end
 
       it 'raises an error when the response is not 201' do

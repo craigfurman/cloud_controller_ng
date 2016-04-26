@@ -25,7 +25,7 @@ module VCAP::CloudController
         allow(bits_client).to receive(:bundles).
           and_return(double(:response, code: 200, body: 'contents'))
         allow(bits_client).to receive(:upload_package).
-          and_return(double(:response, code: 201, body: { guid: package_guid }.to_json))
+          and_return(package_guid)
         allow(Tempfile).to receive(:new).and_return(package_file)
       end
 
@@ -106,7 +106,7 @@ module VCAP::CloudController
           it 'uploads the package to the bits service' do
             expect(bits_client).to receive(:upload_package) do |package_path|
               expect(File.read(package_path)).to eq('contents')
-            end.and_return(double(Net::HTTPCreated, body: { guid: package_guid }.to_json))
+            end
             job.perform
           end
 

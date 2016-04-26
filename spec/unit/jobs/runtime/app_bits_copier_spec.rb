@@ -74,7 +74,6 @@ module VCAP::CloudController
         context 'when bits service is enabled' do
           let(:bits_client) { double(BitsClient) }
           let(:dest_package_guid) { 'some-guid' }
-          let(:duplicate_response) { double(Net::HTTPCreated, body: { guid: dest_package_guid }.to_json) }
 
           before do
             allow_any_instance_of(CloudController::DependencyLocator).to receive(:use_bits_service).and_return(true)
@@ -83,11 +82,11 @@ module VCAP::CloudController
 
           context 'and duplicate succeeds' do
             before do
-              allow(bits_client).to receive(:duplicate_package).and_return(duplicate_response)
+              allow(bits_client).to receive(:duplicate_package).and_return(dest_package_guid)
             end
 
             it 'duplicates the package' do
-              expect(bits_client).to receive(:duplicate_package).with(src_app.package_hash).and_return(duplicate_response)
+              expect(bits_client).to receive(:duplicate_package).with(src_app.package_hash).and_return(dest_package_guid)
               job.perform
             end
 
