@@ -60,6 +60,8 @@ module CloudController
       end
 
       def package_download_url(package)
+        return bits_client.download_url(:packages, package.package_hash) if bits_service_enabled?
+
         blob = @package_blobstore.blob(package.guid)
         return nil unless blob
 
