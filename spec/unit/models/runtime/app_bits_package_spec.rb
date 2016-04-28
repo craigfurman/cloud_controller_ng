@@ -122,6 +122,7 @@ describe AppBitsPackage do
       end
 
       it 'uploads package to bits_service' do
+        allow_any_instance_of(CloudController::Blobstore::LocalAppBits).to receive(:create_package).and_return(File.new(compressed_path))
         expect(bits_client).to receive(:upload_package).with(compressed_path).once
         create
       end
