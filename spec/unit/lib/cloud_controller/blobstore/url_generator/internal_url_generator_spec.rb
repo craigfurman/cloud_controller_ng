@@ -240,6 +240,20 @@ module CloudController
               expect(url_generator.v3_app_buildpack_cache_download_url(app_model.guid, stack)).to be_nil
             end
           end
+
+          context 'when bits-service is enabled' do
+            let(:bits_client) { double(BitsClient) }
+            let(:url) { 'some-url' }
+
+            before do
+              allow_any_instance_of(CloudController::DependencyLocator).to receive(:bits_client).and_return(bits_client)
+              allow(bits_client).to receive(:download_url).with(:buildpack_cache, "#{app_model.guid}/#{stack}").and_return(url)
+            end
+
+            it 'provides bits-service download url' do
+              expect(url_generator.v3_app_buildpack_cache_download_url(app_model.guid, stack)).to eq(url)
+            end
+          end
         end
 
         describe '#package_download_url' do

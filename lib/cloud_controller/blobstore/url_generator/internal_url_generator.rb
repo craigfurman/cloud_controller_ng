@@ -53,7 +53,10 @@ module CloudController
       end
 
       def v3_app_buildpack_cache_download_url(app_guid, stack)
-        blob = @buildpack_cache_blobstore.blob("#{app_guid}/#{stack}")
+        key = "#{app_guid}/#{stack}"
+        return bits_client.download_url(:buildpack_cache, key) if bits_service_enabled?
+
+        blob = @buildpack_cache_blobstore.blob(key)
         return nil unless blob
 
         url_for_blob(blob)
