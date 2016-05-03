@@ -43,6 +43,27 @@ module VCAP::CloudController
           }.by(-2)
         end
       end
+
+      context 'when using bits-service' do
+        subject(:package_delete) { PackageDelete.new(true) }
+        let(:package_hash){'foobar'}
+        let!(:package) { PackageModel.make.tap{|p| p.package_hash = package_hash} }
+
+        it 'schedules a job to the delete the blobstore item' do
+          expect {
+            package_delete.delete(package)
+          }.to change {
+            Delayed::Job.count
+          }.by(1)
+
+          job = Delayed::Job.last
+          expect(job.handler).to include('VCAP::CloudController::Jobs::Runtime::BlobstoreDelete')
+          expect(job.handler).to include("key: #{package_hash}")
+          expect(job.handler).to include('package_blobstore')
+          expect(job.queue).to eq('cc-generic')
+          expect(job.guid).not_to be_nil
+        end
+      end
     end
   end
 end

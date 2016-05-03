@@ -77,7 +77,7 @@ module VCAP::CloudController
 
       it 'removes droplet_hash from expired droplets' do
         BitsExpiration.new.expire_droplets!(app)
-        expired_droplets = DropletModel.where(state: DropletModel::EXPIRED_STATE, app_guid: app.guid, droplet_hash: nil).all
+        expired_droplets = DropletModel.where(state: DropletModel::EXPIRED_STATE, app_guid: app.guid).all
         expect(expired_droplets.count).to eq(5)
       end
 
@@ -126,7 +126,7 @@ module VCAP::CloudController
 
       it 'removes package_hash from expired package' do
         BitsExpiration.new.expire_packages!(app)
-        expired_droplets = PackageModel.where(state: PackageModel::EXPIRED_STATE, app_guid: app.guid, package_hash: nil).all
+        expired_droplets = PackageModel.where(state: PackageModel::EXPIRED_STATE, app_guid: app.guid).all
         expect(expired_droplets.count).to eq(5)
       end
     end

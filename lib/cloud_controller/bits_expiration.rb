@@ -17,7 +17,10 @@ module VCAP::CloudController
       return if dataset.count < droplets_storage_count
       data_to_expire = filter_dataset(dataset, droplets_storage_count)
 
-      DropletModel.where(id: expired_ids(data_to_expire)).update(state: DropletModel::EXPIRED_STATE, droplet_hash: nil)
+      # cc does nil the droplet_hash in the next line, that will break the bit-serivce
+      # just removed the nil'ing of the droplet_hash for now - this should come back when bits-service stores its blob guid
+      # in a better place than the package_hash
+      DropletModel.where(id: expired_ids(data_to_expire)).update(state: DropletModel::EXPIRED_STATE)
     end
 
     def expire_packages!(app)
@@ -28,7 +31,10 @@ module VCAP::CloudController
       return if dataset.count < packages_storage_count
       data_to_expire = filter_dataset(dataset, packages_storage_count)
 
-      PackageModel.where(id: expired_ids(data_to_expire)).update(state: PackageModel::EXPIRED_STATE, package_hash: nil)
+      # cc does nil the package_hash in the next line, that will break the bit-serivce
+      # just removed the nil'ing of the package_hash for now - this should come back when bits-service stores its blob guid
+      # in a better place than the package_hash
+      PackageModel.where(id: expired_ids(data_to_expire)).update(state: PackageModel::EXPIRED_STATE)
     end
 
     private
